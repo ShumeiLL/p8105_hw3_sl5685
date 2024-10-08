@@ -1,0 +1,25 @@
+---
+title: "p8105_hw3_sl5685"
+author: "Shumei Liu"
+date: "2024-10-08"
+output: github_document
+---
+
+### Problem 1
+
+```{r}
+
+```
+
+### Problem 2
+
+```{r}
+
+```
+
+### Problem 3
+
+```{r}
+
+```
+
