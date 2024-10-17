@@ -113,6 +113,72 @@ In the more than high school category, females are more active than males. In th
 ### Problem 3
 
 ```{r}
+# Load the data
+jan_2020 = read_csv("data/Jan 2020 Citi.csv")
+jan_2024 = read_csv("data/Jan 2024 Citi.csv")
+july_2020 = read_csv("data/July 2020 Citi.csv")
+july_2024 = read_csv("data/July 2024 Citi.csv")
 
+# Combine data into one dataframe
+citi_bike_data = bind_rows(jan_2020, jan_2024, july_2020, july_2024) |>
+  janitor::clean_names() |>
+  mutate(year = ifelse(grepl("2020", ride_id), 2020, 2024),
+         month = ifelse(grepl("Jan", ride_id), 1, 7))
 ```
+
+```{r}
+# Produce a table showing the total number of rides by year, month, and member type
+rides_summary = citi_bike_data |>
+  group_by(year, month, member_casual) |>
+  summarise(total_rides = n()) |>
+  arrange(year, month, member_casual) |>
+  ungroup()
+
+rides_summary
+```
+Members ride more often than non-members. And the number of rides in 2024 will be much higher than in 2020, regardless of membership or not.
+
+```{r}
+# Produce a table showing the 5 most popular starting stations for July 2024
+july_2024 = filter(citi_bike_data, year == 2024, month == 7)
+
+most_popular_stations = july_2024 |>
+  group_by(start_station_name) |>
+  summarise(total_rides = n()) |>
+  arrange(desc(total_rides)) |>
+  head(5)
+
+most_popular_stations
+```
+
+```{r}
+# Plot to investigate the effects of day of the week, month, and year on median ride duration
+citi_bike_data$weekdays = factor(citi_bike_data$weekdays, 
+                                  levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
+median_duration_plot = citi_bike_data |>
+  group_by(year, month, weekdays) |>
+  summarise(median_duration = median(duration, na.rm = TRUE)) |>
+  ggplot(aes(x = weekdays, y = median_duration, fill = as.factor(year))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ month) +
+  labs(title = "Median Ride Duration by Day of Week, Month, and Year",
+       x = "Day of the Week",
+       y = "Median Ride Duration (minutes)",
+       fill = "Year") +
+  theme_minimal()
+
+median_duration_plot
+```
+In 2020, Fridays had the most riding time, and Thursday the least, but in 2024, riding time was roughly the same every day.
+
+
+
+
+
+
+
+
+
+
 
