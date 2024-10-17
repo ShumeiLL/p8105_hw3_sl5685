@@ -7,7 +7,7 @@ output: github_document
 
 ```{r, include=FALSE}
 #Load necessary libraries
-library(tidyverse)
+library(tidyverse) 
 library(ggridges)
 library(patchwork)
 
@@ -173,16 +173,18 @@ In the more than high school category, females are more active than males. In th
 
 ```{r}
 # Load the data
-jan_2020 = read_csv("data/Jan 2020 Citi.csv")
-jan_2024 = read_csv("data/Jan 2024 Citi.csv")
-july_2020 = read_csv("data/July 2020 Citi.csv")
-july_2024 = read_csv("data/July 2024 Citi.csv")
+jan_2020 = read_csv("data/Jan 2020 Citi.csv") |>
+  mutate(year = 2020, month = 1)
+jan_2024 = read_csv("data/Jan 2024 Citi.csv") |>
+  mutate(year = 2024, month = 1)
+july_2020 = read_csv("data/July 2020 Citi.csv") |>
+  mutate(year = 2020, month = 7)
+july_2024 = read_csv("data/July 2024 Citi.csv") |>
+  mutate(year = 2024, month = 7)
 
 # Combine data into one dataframe
 citi_bike_data = bind_rows(jan_2020, jan_2024, july_2020, july_2024) |>
-  janitor::clean_names() |>
-  mutate(year = ifelse(grepl("2020", ride_id), 2020, 2024),
-         month = ifelse(grepl("Jan", ride_id), 1, 7))
+  janitor::clean_names()
 ```
 
 ```{r}
@@ -229,7 +231,7 @@ median_duration_plot = citi_bike_data |>
 
 median_duration_plot
 ```
-In 2020, Fridays had the most riding time, and Thursday the least, but in 2024, riding time was roughly the same every day.
+In 2020, Saturday and Sunday riding time was longer. And there was more riding time in 2020 than in 2024. In 2024, riding time was roughly the same every day.
 
 ```{r}
 # Plot to investigate the impact of month, membership status, and bike type on ride duration distribution for 2024 data
@@ -246,7 +248,7 @@ ride_duration = citi_bike_data |>
 
 ride_duration
 ```
-As can be seen from the chart, the riding duration of both types of bikes is mostly less than 50 minutes. Members ride more frequently, while more people choose classic bicycles.
+As can be seen from the chart, the riding duration of both types of bikes is mostly less than 50 minutes. Members ride more frequently, while more people choose electric bicycles.
 
 
 
