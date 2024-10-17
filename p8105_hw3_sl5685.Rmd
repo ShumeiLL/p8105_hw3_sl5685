@@ -5,6 +5,11 @@ date: "2024-10-08"
 output: github_document
 ---
 
+```{r}
+#Load necessary libraries
+library(tidyverse)
+```
+
 ### Problem 1
 
 ```{r}
@@ -14,8 +19,96 @@ output: github_document
 ### Problem 2
 
 ```{r}
+#Load the datasets
+accel_df = read_csv("data/nhanes_accel.csv") |>
+  janitor::clean_names()
 
+covar_df = read_csv("data/nhanes_covar.csv", skip = 4) |>
+  janitor::clean_names()
 ```
+
+```{r}
+#Tidy, merge, and otherwise organize the data sets.
+whole_df = 
+  left_join(accel_df, covar_df, by = "seqn") |>
+  relocate(seqn, sex, age, bmi, education) |>
+  filter(age >= 21) |>
+  drop_na() |>
+  mutate(education = 
+           factor(education,
+                  levels = c("1", "2", "3"),
+                  labels = c("Less than high school", "High school equivalent", 
+                                       "More than high school"))) |>
+  mutate(sex = 
+           factor(sex,
+                  levels = c("1", "2"),
+                  labels = c("male", "female")))
+
+whole_df
+```
+
+```{r}
+#Produce table for the number of men and women in each education category
+gender_edu_table = whole_df |>
+  group_by(education, sex) |>
+  summarise(count = n()) |>
+  ungroup()
+
+gender_edu_table
+```
+
+```{r}
+#Plot the age distributions for men and women in each education category
+ggplot(whole_df, aes(x = age, fill = sex)) +
+  geom_histogram(alpha = .5) +
+  facet_wrap(~ education) +
+  labs(title = "Age Distribution by Education Level and Sex", x = "Age", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "bottom")
+```
+In all three education levels, there are more males than females. In the category of more than high school, young people are more than old people, especially young females. In the category of less than high school, there are more elderly people, especially elderly males.
+
+```{r}
+#create a total activity variable for each participant
+total_activity = whole_df |>
+  rowwise() |>
+  mutate(totalactivity = sum(c_across(min1:min1440)), na.rm = TRUE) |>
+  relocate(totalactivity)
+```
+
+```{r}
+# Plot total activity(y) against age(x), with separate panels for each education level
+ggplot(total_activity, aes(x = age, y = totalactivity, color = sex)) +
+  geom_point(alpha = .5) +
+  geom_smooth(method = "loess", se = FALSE) +
+  facet_wrap(~ education) +
+  labs(title = "Total Activity vs Age by Education Level and Sex", x = "Age", y = "Total Activity") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "bottom")
+```
+It can be clearly seen from the chart that, regardless of education level or gender, the older the less total activity time. From the charts for high school level and more than high school, it can be seen that females have more total activity time than males.
+
+```{r}
+#Make a three-panel plot that shows the 24-hour activity time courses for each education level
+activity_long = whole_df |>
+  pivot_longer(
+    min1:min1440,
+    names_to = "minute", 
+    values_to = "activity"
+  )
+  
+#Plot the 24-hour activity time courses
+ggplot(activity_long, aes(x = minute, y = activity, color = sex)) +
+  geom_point(alpha = .5) +
+  geom_smooth(method = "loess", se = FALSE) +
+  facet_wrap(~ education) +
+  labs(title = "24-Hour Activity Time Course by Education Level and Sex", 
+       x = "Minute of the Day", 
+       y = "Activity") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "bottom")
+```
+In the more than high school category, females are more active than males. In the high school level category, males have activity time more than females. In the less than high school category, the ratio of males to females is the same.
 
 ### Problem 3
 
